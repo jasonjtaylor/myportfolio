@@ -358,15 +358,21 @@ function trackPageView() {
 }
 
 // Download resume functionality with tracking
-function downloadResume() {
+function downloadResume(event) {
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+    }
     // Track download attempt
     trackEvent('resume_download_attempt', {
         event_category: 'engagement',
         event_label: 'resume_download'
     });
     
-    // First, test if the file is accessible
-    fetch('./resume.pdf', { method: 'HEAD' })
+    const resumeUrlAbsolute = '/JayTaylorResume.pdf';
+    const resumeUrlFull = 'https://jasontaylor.netlify.app/JayTaylorResume.pdf';
+
+    // First, test if the file is accessible (try absolute, then full URL)
+    fetch(resumeUrlAbsolute, { method: 'HEAD' })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`File not found: ${response.status}`);
@@ -374,8 +380,17 @@ function downloadResume() {
             console.log('Resume file is accessible');
         })
         .catch(error => {
-            console.error('Resume file not accessible:', error);
-            alert('Resume file not found. Please check that resume.pdf is in the project folder.');
+            console.warn('Local path not accessible, trying full URL:', error);
+            return fetch(resumeUrlFull, { method: 'HEAD' });
+        })
+        .then(headResp => {
+            if (headResp && !headResp.ok) {
+                throw new Error('Full URL not accessible');
+            }
+        })
+        .catch(error => {
+            console.error('Resume file not accessible anywhere:', error);
+            alert('Resume file not found. Please try again later.');
             return;
         });
     
@@ -394,7 +409,7 @@ function downloadResume() {
         `;
         
         // Try multiple download methods for better compatibility
-        const resumeUrl = './resume.pdf';
+        const resumeUrl = resumeUrlAbsolute;
         
         // Method 1: Try direct download first
         try {
@@ -412,11 +427,15 @@ function downloadResume() {
         // Method 2: Open in new tab as fallback
         setTimeout(() => {
             try {
-                window.open(resumeUrl, '_blank');
+                const opened = window.open(resumeUrl, '_blank');
+                if (!opened) {
+                    // try full URL if blocked or failed
+                    window.open(resumeUrlFull, '_blank');
+                }
             } catch (e) {
                 console.log('Window open failed, trying fetch method');
                 // Method 3: Fetch and download
-                fetch(resumeUrl)
+                fetch(resumeUrlFull)
                     .then(response => response.blob())
                     .then(blob => {
                         const url = window.URL.createObjectURL(blob);
@@ -476,6 +495,7 @@ function downloadResume() {
             Download PDF
         `;
     }
+    return false;
 }
 
 // Add CSS for additional interactive elements
@@ -637,3 +657,144 @@ const additionalStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = additionalStyles;
 document.head.appendChild(styleSheet);
+
+// ===== Sleepwalker Particle Field (lightweight, no libs) =====
+(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canvas = document.getElementById('bg-particles');
+    if (!canvas || reduce) return;
+  
+    const ctx = canvas.getContext('2d');
+    const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1)); // cap for perf
+  
+    // ---- Tweakables ----
+    const COLORS = ['rgba(58,120,255,0.9)', 'rgba(255,72,72,0.85)']; // blue + sleepwalker red
+    const BASE_SPEED = 0.02; // slower drift
+    const CONNECT_DIST = 160;    // px (screen space) max line distance
+    const DENSITY = 11000;       // bigger = fewer particles (pixels per particle)
+    const LINE_ALPHA = 0.08;     // max line opacity
+    // --------------------
+  
+    let w = 0, h = 0, particles = [], raf;
+    const mouse = { x: 0, y: 0, active: false };
+  
+    function resize() {
+      w = canvas.width  = Math.floor(innerWidth  * DPR);
+      h = canvas.height = Math.floor(innerHeight * DPR);
+      canvas.style.width  = innerWidth  + 'px';
+      canvas.style.height = innerHeight + 'px';
+      init();
+    }
+  
+    function init() {
+      const count = Math.max(24, Math.floor((w * h) / (DENSITY * DPR * DPR)));
+      particles = Array.from({ length: count }, () => spawn());
+    }
+  
+    function spawn() {
+      // random position (device pixels)
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+      // tiny drift vector
+      const ang = Math.random() * Math.PI * 2;
+      const spd = (BASE_SPEED + Math.random() * BASE_SPEED) * DPR;
+      return {
+        x, y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        r: (Math.random() * 1.2 + 0.8) * DPR, // radius
+        c: COLORS[Math.random() < 0.65 ? 0 : 1], // mostly blue, some red
+        a: 0.5 + Math.random() * 0.4 // alpha multiplier for dot
+      };
+    }
+  
+    function step() {
+      // subtle parallax with scroll
+      const scrollParallax = (scrollY || window.pageYOffset || 0) * 0.02 * DPR;
+  
+      ctx.clearRect(0, 0, w, h);
+  
+      // background faint radial glow at top-left (ties palette together)
+      const g = ctx.createRadialGradient(w * 0.15, h * 0.1, 0, w * 0.15, h * 0.1, Math.max(w, h));
+      g.addColorStop(0, 'rgba(58,120,255,0.10)');
+      g.addColorStop(1, 'rgba(12,22,39,0.0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+  
+      // update & draw particles
+      for (const p of particles) {
+// Stronger mouse attraction — noticeable but smooth
+if (mouse.active) {
+    const dx = mouse.x - p.x;
+    const dy = mouse.y - p.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 600) { // larger area of influence
+      const strength = (1 - dist / 500) * 1.7; // much stronger pull
+      p.vx += dx * strength * 0.018;
+      p.vy += dy * strength * 0.018;
+    }
+  }
+  
+        p.x += p.vx * 0.08;
+        p.y += p.vy * 0.08 + 0.02 * scrollParallax * 0.08;        
+        
+  
+        // wrap around edges
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+        if (p.y < -10) p.y = h + 10;
+        if (p.y > h + 10) p.y = -10;
+  
+        // dot
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        // convert c like rgba(r,g,b,a) but apply per-dot alpha multiplier
+        ctx.fillStyle = p.c.replace(/[\d.]+\)$/g, (m) => (parseFloat(m) * p.a) + ')');
+        ctx.fill();
+      }
+  
+      // connect close particles (very faint)
+      ctx.lineWidth = 0.8 * DPR;
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx*dx + dy*dy;
+          const maxDist = CONNECT_DIST * DPR;
+          if (d2 < maxDist * maxDist) {
+            const alpha = LINE_ALPHA * (1 - d2 / (maxDist * maxDist));
+            ctx.strokeStyle = `rgba(58,120,255,${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+  
+      raf = requestAnimationFrame(step);
+    }
+  
+    function onMouse(e) {
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      mouse.x = x * DPR;
+      mouse.y = y * DPR;
+      mouse.active = true;
+    }
+    function offMouse() { mouse.active = false; }
+  
+    window.addEventListener('mousemove', onMouse, { passive: true });
+    window.addEventListener('touchmove', onMouse, { passive: true });
+    window.addEventListener('touchend', offMouse, { passive: true });
+    window.addEventListener('resize', () => { cancelAnimationFrame(raf); resize(); raf = requestAnimationFrame(step); }, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else raf = requestAnimationFrame(step);
+    });
+  
+    resize();
+    raf = requestAnimationFrame(step);
+  })();
+  

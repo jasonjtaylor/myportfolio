@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# builds / output
+.next/
+out/
+dist/
+build/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# env
+.env*
+!.env.example
+
+# misc
+.DS_Store
+
+# Local Netlify folder
+.netlify

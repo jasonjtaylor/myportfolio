@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="icon" type="image/png" href="SleepWalkerLogoNB.png">
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
@@ -19,6 +20,10 @@
         gtag('config', 'GA_MEASUREMENT_ID');
     </script>
 </head>
+<!-- Site-wide particle background -->
+<canvas id="bg-particles" class="bg-particles" aria-hidden="true"></canvas>
+<div class="bg-lighten" aria-hidden="true"></div>
+
 <body>
     <!-- Hero Section -->
     <section class="hero">
@@ -28,36 +33,35 @@
                     <h1 class="hero-title">
                         <span class="highlight">15+ Years</span> of <span class="gradient-text">Technical Excellence</span>
                     </h1>
-                    <p class="hero-subtitle">Senior Technical Project Manager & Production Leader</p>
+                    <p class="hero-subtitle">Senior Technical Director, IT Manager & Technology Leader</p>
                     <p class="hero-description">
-                        I've led <strong>$2M+ budgets</strong>, managed <strong>80+ annual events</strong>, and delivered 
-                        <strong>complex technology initiatives</strong> that drive real business results. 
+                        I've led <strong>$2M+ budgets</strong>, managed <strong>120+ complex projects executed</strong>, across software, broadcast, and infrastructure domains
+                        </strong> that drive real business results. 
                         Ready to bring this proven expertise to your next challenge.
                     </p>
                     <div class="cta-buttons">
-                        <a href="#contact" class="btn btn-primary">Get In Touch</a>
-                        <a href="#experience" class="btn btn-secondary">View Experience</a>
+                        <a href="#contact" class="btn btn-primary">Let’s Work Together</a>
+                        <a href="#experience" class="btn btn-secondary">See My Experience</a>
                     </div>
                 </div>
                 <div class="hero-visual">
-                    <div class="profile-card">
-                        <div class="profile-image">
-                            <img src="jason-taylor-photo.jpg" alt="Jason Taylor - Senior Technical Project Manager" class="profile-photo">
-                        </div>
-                        <div class="profile-stats">
-                            <div class="stat">
-                                <span class="stat-number">15+</span>
-                                <span class="stat-label">Years of Experience</span>
+                    <div class="impact-card" aria-labelledby="impact-title">
+                        <h3 id="impact-title" class="impact-title">Impact at a Glance</h3>
+                        <div class="impact-grid">
+                            <div class="impact-item">
+                                <span class="impact-number">$2M+</span>
+                                <span class="impact-label">Annual Budgets Delivered Successfully</span>
                             </div>
-                            <div class="stat">
-                                <span class="stat-number">$2M+</span>
-                                <span class="stat-label">Budget Managed</span>
+                            <div class="impact-item">
+                                <span class="impact-number">80+</span>
+                                <span class="impact-label">Projects Executed</span>
                             </div>
-                            <div class="stat">
-                                <span class="stat-number">80+</span>
-                                <span class="stat-label">Events Led</span>
+                            <div class="impact-item">
+                                <span class="impact-number">15+</span>
+                                <span class="impact-label">Years Leading Cross-Functional Teams</span>
                             </div>
                         </div>
+                        <div class="impact-footnote">Trusted to lead cross-functional teams and deliver complex technology initiatives.</div>
                     </div>
                 </div>
             </div>
@@ -125,7 +129,7 @@
                             </div>
                             <div class="highlight-item">
                                 <span class="highlight-number">80+</span>
-                                <span class="highlight-text">Events Annually</span>
+                                <span class="highlight-text">Projects Executed</span>
                             </div>
                             <div class="highlight-item">
                                 <span class="highlight-number">15</span>
@@ -288,6 +292,20 @@
                         <p class="education-date">2010 – 2011</p>
                     </div>
                 </div>
+                <div class="education-item">
+                    <div class="education-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
+                            <path d="M8 12h8M8 16h5M12 8h4"/>
+                        </svg>
+                    </div>
+                    <div class="education-content">
+                        <h3>iOS and Software Development</h3>
+                        <p class="education-school">App Dev with Swift</p>
+                        <p class="education-school">BrainStation</p>
+                        <p class="education-date">2021 - 2022</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -298,6 +316,7 @@
             <div class="contact-content">
                 <div class="contact-info">
                     <h2 class="section-title">Ready to Work Together?</h2>
+                    
                     <p class="contact-description">
                         I'm actively seeking new opportunities to bring my 15+ years of technical leadership 
                         and proven project management expertise to your organization. Let's discuss how I can 
@@ -309,13 +328,13 @@
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                                 <polyline points="22,6 12,13 2,6"/>
                             </svg>
-                            <span>sleepwalkersoftware@gmail.com</span>
+                            <a href="mailto:sleepwalkersoftware@gmail.com">sleepwalkersoftware@gmail.com</a>
                         </div>
                         <div class="contact-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                             </svg>
-                            <span>506-999-0074</span>
+                            <a href="tel:+15069990074">506-999-0074</a>
                         </div>
                         <div class="contact-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -323,7 +342,7 @@
                                 <rect x="2" y="9" width="4" height="12"/>
                                 <circle cx="4" cy="4" r="2"/>
                             </svg>
-                            <span>linkedin.com/in/jay-taylor-profile</span>
+                            <a href="https://linkedin.com/in/jay-taylor-profile" target="_blank" rel="noopener">linkedin.com/in/jay-taylor-profile</a>
                         </div>
                     </div>
                 </div>
@@ -331,7 +350,7 @@
                     <div class="cta-card">
                         <h3>Download Resume</h3>
                         <p>Get the complete details of my experience and achievements in a professional format.</p>
-                        <a href="./resume.pdf" download="Jason-Taylor-Resume.pdf" class="btn btn-primary btn-large" onclick="downloadResume()">
+                        <a href="JayTaylorResume.pdf" download="Jason-Taylor-Resume.pdf" class="btn btn-primary btn-large" onclick="return downloadResume(event)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="7,10 12,15 17,10"/>
@@ -345,13 +364,17 @@
         </div>
     </section>
 
-    <!-- Footer -->
+
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Jason Taylor. All rights reserved.</p>
+        <div class="container footer-layout">
+          <img src="WhiteSleepWalkerNB.png" alt="Sleepwalker Software logo" class="footer-logo">
+          <p>&copy; 2025 Jason Taylor. All rights reserved.</p>
         </div>
-    </footer>
+      </footer>
+      
+    
 
     <script src="script.js"></script>
+    <script src="src/chatbot.js" defer></script>
 </body>
 </html>
