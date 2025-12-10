@@ -151,14 +151,30 @@ async function sendMessage() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
   try {
-    const res = await fetch("/.netlify/functions/chat", {
+    // Use absolute URL to ensure it works in production
+    const apiUrl = window.location.origin + "/.netlify/functions/chat";
+    console.log("Calling API:", apiUrl);
+    
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ system: SYSTEM_PROMPT, messages: history })
     });
+    
+    console.log("Response status:", res.status, res.statusText);
+    
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ error: "Network error" }));
-      throw new Error(errorData.error || "Network error");
+      let errorMessage = "Network error";
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.error || errorMessage;
+        console.error("API Error:", errorData);
+      } catch (e) {
+        const errorText = await res.text();
+        console.error("API Error (text):", errorText);
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
     bot.innerHTML = "";
@@ -187,7 +203,12 @@ async function sendMessage() {
     history = history.slice(-25);
     localStorage.setItem("chatHistory", JSON.stringify(history));
   } catch (err) {
-    console.error(err);
+    console.error("Chatbot error:", err);
+    console.error("Error details:", {
+      message: err.message,
+      stack: err.stack,
+      url: window.location.href
+    });
     bot.textContent = "⚠️ Sorry, I hit a snag. Please try again.";
   }
 }
