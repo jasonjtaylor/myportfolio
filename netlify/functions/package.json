@@ -1,4 +1,8 @@
 {
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify serverless functions",
+  "main": "chat.js",
   "dependencies": {
     "openai": "^4.60.0"
   }
