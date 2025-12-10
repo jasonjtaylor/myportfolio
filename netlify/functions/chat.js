@@ -1,45 +1,81 @@
-import OpenAI from "openai";
-const openai=new OpenAI({apiKey:process.env.OPENAI_API_KEY});
-const RATE_LIMIT=30,WINDOW=60000;
-const cache=new Map();
+const OpenAI = require('openai');
 
-export default async function handler(req,res){
-  if(req.method!=="POST"){res.statusCode=405;return res.end("Method not allowed");}
-  const ip=req.headers["x-forwarded-for"]||req.connection.remoteAddress;
-  const now=Date.now();
-  const arr=cache.get(ip)||[];
-  const recent=arr.filter(t=>now-t<WINDOW);
-  if(recent.length>=RATE_LIMIT){res.statusCode=429;return res.end("Rate limit exceeded");}
-  recent.push(now);cache.set(ip,recent);
-
-  try{
-    const {system,messages}=JSON.parse(req.body||"{}");
-    if(!Array.isArray(messages))throw new Error("Invalid payload");
-
-    res.writeHead(200,{
-      "Content-Type":"text/plain",
-      "Transfer-Encoding":"chunked",
-      "Cache-Control":"no-store"
-    });
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),25000);
-
-    const stream=await openai.chat.completions.create({
-      model:"gpt-4o-mini",
-      temperature:0.4,
-      messages:[{role:"system",content:system},...messages],
-      stream:true
-    },{signal:controller.signal});
-
-    for await(const chunk of stream){
-      const token=chunk.choices?.[0]?.delta?.content||"";
-      res.write(token);
-    }
-    clearTimeout(timeout);
-    res.end();
-  }catch(e){
-    console.error(e);
-    if(!res.headersSent)res.writeHead(500,{"Content-Type":"text/plain"});
-    res.end("Server error");
+exports.handler = async (event) => {
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' })
+    };
   }
-}
+
+  try {
+    // Parse request body
+    const { system, messages } = JSON.parse(event.body || '{}');
+    
+    if (!Array.isArray(messages)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid payload: messages must be an array' })
+      };
+    }
+
+    // Check for API key
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'OPENAI_API_KEY not configured' })
+      };
+    }
+
+    // Initialize OpenAI (v4 SDK)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Prepare messages array with system prompt
+    const chatMessages = [];
+    if (system) {
+      chatMessages.push({ role: 'system', content: system });
+    }
+    chatMessages.push(...messages);
+
+    // Create chat completion with streaming
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: chatMessages,
+      stream: true,
+      temperature: 0.4,
+    });
+
+    // For Netlify Functions, we need to collect the stream and return it
+    // Since Netlify doesn't support true streaming responses easily,
+    // we'll return the full response as text/plain
+    let fullResponse = '';
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        fullResponse += content;
+      }
+    }
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'text/plain',
+        'Cache-Control': 'no-store',
+      },
+      body: fullResponse
+    };
+
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
+    };
+  }
+};
