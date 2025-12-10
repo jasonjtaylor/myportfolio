@@ -33,6 +33,7 @@ function ensureUI() {
       <header class="chat-head" title="Double-click to collapse/expand">
         <h2 class="chat-title">Ask Me Anything</h2>
         <div class="chat-head-actions">
+          <button type="button" class="chat-clear" aria-label="Clear chat history" title="Clear Chat">🗑️</button>
           <button type="button" class="chat-min" aria-label="Minimize chat" title="Minimize">–</button>
           <button type="button" class="chat-close" aria-label="Close chat" title="Close">×</button>
         </div>
@@ -56,15 +57,13 @@ const { launcher, panel } = ensureUI();
 // ---------- State ----------
 let history = JSON.parse(localStorage.getItem("chatHistory") || "[]").slice(-25);
 
-// Auto-open on first visit
-if (localStorage.getItem("chatOpen") === null) {
-  localStorage.setItem("chatOpen", "true");
-}
+// Default to closed state (respect user preference if set)
 let isOpen = localStorage.getItem("chatOpen") === "true";
 let isCollapsed = localStorage.getItem("chatCollapsed") === "true";
 
 // Elements
 const headEl = panel.querySelector(".chat-head");
+const clearBtn = panel.querySelector(".chat-clear");
 const minBtn = panel.querySelector(".chat-min");
 const closeBtn = panel.querySelector(".chat-close");
 const bodyEl = panel.querySelector("#chat-body");
@@ -75,9 +74,17 @@ const sendBtn = panel.querySelector("#send-btn");
 // ---------- Helpers ----------
 function setPanelState(state /* 'hidden' | 'open' | 'collapsed' */) {
   panel.classList.remove("is-hidden", "is-open", "is-collapsed");
-  if (state === "open") panel.classList.add("is-open");
-  else if (state === "collapsed") panel.classList.add("is-collapsed");
-  else panel.classList.add("is-hidden");
+  if (state === "open") {
+    panel.classList.add("is-open");
+    // Ensure body and input are visible when open
+    if (bodyEl) bodyEl.style.display = "flex";
+  } else if (state === "collapsed") {
+    panel.classList.add("is-collapsed");
+    // Hide body when collapsed
+    if (bodyEl) bodyEl.style.display = "none";
+  } else {
+    panel.classList.add("is-hidden");
+  }
 
   // Launcher visible ONLY when panel is hidden
   launcher.classList.toggle("is-hidden", state !== "hidden");
@@ -108,9 +115,41 @@ function expandPanel() {
   isCollapsed = false;
   localStorage.setItem("chatCollapsed", "false");
   setPanelState("open");
+  // Ensure input is visible when expanded
+  if (bodyEl) bodyEl.style.display = "flex";
   inputEl.focus();
 }
 function toggleCollapse() { isCollapsed ? expandPanel() : collapsePanel(); }
+
+// ---------- Clear Chat ----------
+function clearChat() {
+  // Clear localStorage
+  localStorage.removeItem("chatHistory");
+  localStorage.setItem("chatHistory", "[]"); // Set to empty array explicitly
+  
+  // Clear internal history
+  history = [];
+  
+  // Clear DOM
+  messagesEl.innerHTML = "";
+  messagesEl.removeAttribute("data-rendered");
+  
+  // Show feedback
+  const feedback = document.createElement("div");
+  feedback.className = "chat-message bot";
+  feedback.textContent = "Chat cleared. How can I help you?";
+  feedback.style.opacity = "0.7";
+  feedback.style.fontStyle = "italic";
+  messagesEl.appendChild(feedback);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  
+  // Remove feedback after 2 seconds
+  setTimeout(() => {
+    if (feedback.parentNode) {
+      feedback.remove();
+    }
+  }, 2000);
+}
 
 // ---------- Render ----------
 function renderMessages() {
@@ -225,6 +264,7 @@ launcher.addEventListener("click", () => {
     hidePanel();
   }
 });
+clearBtn.addEventListener("click", clearChat);
 closeBtn.addEventListener("click", hidePanel);
 minBtn.addEventListener("click", toggleCollapse);
 headEl.addEventListener("dblclick", toggleCollapse);
@@ -235,7 +275,8 @@ inputEl.addEventListener("keydown", e => {
 
 // ---------- Restore on load ----------
 (function restore() {
-  if (localStorage.getItem("chatOpen") === "true") {
+  // Only restore if user previously opened it (not auto-open)
+  if (isOpen) {
     setPanelState(isCollapsed ? "collapsed" : "open");
     if (!messagesEl.dataset.rendered) renderMessages();
   } else {

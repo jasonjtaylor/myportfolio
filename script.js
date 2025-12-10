@@ -669,7 +669,7 @@ document.head.appendChild(styleSheet);
   
     // ---- Tweakables ----
     const COLORS = ['rgba(58,120,255,0.9)', 'rgba(255,72,72,0.85)']; // blue + sleepwalker red
-    const BASE_SPEED = 0.02; // slower drift
+    const BASE_SPEED = 0.01; // slower drift (reduced from 0.02)
     const CONNECT_DIST = 160;    // px (screen space) max line distance
     const DENSITY = 11000;       // bigger = fewer particles (pixels per particle)
     const LINE_ALPHA = 0.08;     // max line opacity
@@ -730,13 +730,13 @@ if (mouse.active) {
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 600) { // larger area of influence
       const strength = (1 - dist / 500) * 1.7; // much stronger pull
-      p.vx += dx * strength * 0.018;
-      p.vy += dy * strength * 0.018;
+      p.vx += dx * strength * 0.009; // reduced from 0.018
+      p.vy += dy * strength * 0.009; // reduced from 0.018
     }
   }
   
-        p.x += p.vx * 0.08;
-        p.y += p.vy * 0.08 + 0.02 * scrollParallax * 0.08;        
+        p.x += p.vx * 0.04; // reduced from 0.08 (50% slower)
+        p.y += p.vy * 0.04 + 0.01 * scrollParallax * 0.04; // reduced from 0.08 and 0.02        
         
   
         // wrap around edges
