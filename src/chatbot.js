@@ -156,20 +156,34 @@ async function sendMessage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ system: SYSTEM_PROMPT, messages: history })
     });
-    if (!res.ok || !res.body) throw new Error("Network error");
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: "Network error" }));
+      throw new Error(errorData.error || "Network error");
+    }
 
     bot.innerHTML = "";
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let partial = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      partial += decoder.decode(value, { stream: true });
-      bot.textContent = partial;
+    
+    // Handle streaming response if available, otherwise use text
+    if (res.body && res.body.getReader) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let partial = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        partial += decoder.decode(value, { stream: true });
+        bot.textContent = partial;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      history.push({ role: "assistant", content: partial });
+    } else {
+      // Fallback for non-streaming responses
+      const text = await res.text();
+      bot.textContent = text;
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      history.push({ role: "assistant", content: text });
     }
-    history.push({ role: "assistant", content: partial });
+    
     history = history.slice(-25);
     localStorage.setItem("chatHistory", JSON.stringify(history));
   } catch (err) {
