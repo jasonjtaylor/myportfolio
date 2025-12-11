@@ -536,7 +536,7 @@ const additionalStyles = `
     .scroll-to-top {
         position: fixed;
         bottom: 30px;
-        right: 30px;
+        right: 120px; /* Moved further left to create gap from chat launcher */
         width: 50px;
         height: 50px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
