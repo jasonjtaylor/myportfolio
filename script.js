@@ -147,19 +147,46 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('scroll', requestParallaxUpdate, { passive: true });
 
     // Add counter animation for statistics
-    const animateCounter = (element, target, duration = 2000) => {
+    const animateCounter = (element, target, originalText, duration = 2000) => {
         let start = 0;
         const increment = target / (duration / 16);
         
-        const timer = setInterval(() => {
-            start += increment;
-            if (start >= target) {
-                element.textContent = target;
-                clearInterval(timer);
-            } else {
-                element.textContent = Math.floor(start);
-            }
-        }, 16);
+        // Check if element has separate main and suffix spans (new structure)
+        const mainSpan = element.querySelector('.highlight-number-main');
+        const suffixSpan = element.querySelector('.highlight-number-suffix');
+        
+        if (mainSpan && suffixSpan) {
+            // New structure with separate spans
+            const prefixMatch = originalText.match(/^[^\d]*/);
+            const suffixText = suffixSpan.textContent;
+            const prefix = prefixMatch ? prefixMatch[0] : '';
+            
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    mainSpan.textContent = originalText.replace(/[^\d]*$/, ''); // Restore original number part
+                    clearInterval(timer);
+                } else {
+                    mainSpan.textContent = prefix + Math.floor(start);
+                }
+            }, 16);
+        } else {
+            // Old structure - single text element
+            const prefixMatch = originalText.match(/^[^\d]*/);
+            const suffixMatch = originalText.match(/[^\d]*$/);
+            const prefix = prefixMatch ? prefixMatch[0] : '';
+            const suffix = suffixMatch ? suffixMatch[0] : '';
+            
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.textContent = originalText; // Restore original text with all formatting
+                    clearInterval(timer);
+                } else {
+                    element.textContent = prefix + Math.floor(start) + suffix;
+                }
+            }, 16);
+        }
     };
 
     // Trigger counter animations when stats come into view
@@ -168,11 +195,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (entry.isIntersecting) {
                 const statNumbers = entry.target.querySelectorAll('.stat-number, .highlight-number');
                 statNumbers.forEach(stat => {
-                    const text = stat.textContent;
-                    const number = parseInt(text.replace(/[^\d]/g, ''));
+                    // Get original text from main span if it exists, otherwise from the element itself
+                    const mainSpan = stat.querySelector('.highlight-number-main');
+                    const originalText = mainSpan ? (mainSpan.textContent + (stat.querySelector('.highlight-number-suffix')?.textContent || '')) : stat.textContent;
+                    const number = parseInt(originalText.replace(/[^\d]/g, ''));
                     if (number && !stat.classList.contains('animated')) {
                         stat.classList.add('animated');
-                        animateCounter(stat, number);
+                        animateCounter(stat, number, originalText);
                     }
                 });
             }

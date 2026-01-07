@@ -485,7 +485,7 @@ p {
 
 .timeline-highlights {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
@@ -495,14 +495,41 @@ p {
     padding: 1rem;
     background: #1e293b;
     border-radius: 10px;
+    min-width: 0; /* Prevent grid item from overflowing */
+    overflow: visible; /* Ensure content is not clipped */
+    width: 100%; /* Take full width of grid cell */
 }
 
 .highlight-number {
-    display: block;
-    font-size: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #0a33ea;
     margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.highlight-number-main {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0a33ea;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+.highlight-number-suffix {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0a33ea;
+    margin: 0;
+    padding: 0;
+    margin-top: -0.1rem;
+    line-height: 1;
 }
 
 .highlight-text {
