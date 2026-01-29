@@ -23,3 +23,7 @@ pnpm-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# Local development files
+server.js
+run-local.sh

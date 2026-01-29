@@ -1,0 +1,13 @@
+{
+  "name": "jason-taylor-portfolio",
+  "version": "1.0.0",
+  "description": "Jason Taylor's portfolio website",
+  "scripts": {
+    "dev": "netlify dev",
+    "start": "netlify dev",
+    "serve": "node server.js"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
